@@ -1,9 +1,37 @@
 #!/bin/bash
 
-RgName=`az group list --query '[0].name' --output tsv`
-Location=`az group list --query '[0].location' --output tsv`
+#the Resource group name to be created and used
+RgName='Exercise-CreateAliasRecords_for_AzureDNS'
+#the location to be used
+Location='eastus'
+
+#Inform of Location to be used, and prompt for an opportunity to abort.
+echo
+echo '--------------------------------------------------------------------------'
+echo "Resources will be created with location '$Location'."
+echo 'You can change this by editing the setup.sh with `nano ./setup.sh`'
+echo
+read -n1 -r -p "Press 'y' to proceed or any other key to abort: " answer
+echo
+if [[ $answer != [Yy] ]]; then
+  echo "Aborted."
+  exit 1
+fi
+echo
+
+#Availability of SizeSKUs can change, in which case alter the following. 
+VMSizeSKU='Standard_B1s'
+#For a list of availabel SKUs run `az vm list-skus --location eastus --resource-type virtualMachines --output table`
+#Note that costs can vary.
+#To browse costs you use either https://azure.microsoft.com/en-us/pricing/calculator/, or browse options using 'Create virtual machine' in the Azure portal.
 
 date
+
+# Create a Resource group to tidy the excercise's resources
+echo '------------------------------------------'
+echo 'Creating the resource group'
+az group create --name $RgName --location $Location
+
 # Create a Virtual Network for the VMs
 echo '------------------------------------------'
 echo 'Creating a Virtual Network for the VMs'
@@ -58,6 +86,7 @@ for i in `seq 1 2`; do
         --nics webNic$i \
         --location $Location \
         --image Ubuntu2204 \
+        --size $VMSizeSKU \
         --availability-set portalAvailabilitySet \
         --generate-ssh-keys \
         --custom-data cloud-init.txt
@@ -128,6 +157,12 @@ echo '--------------------------------------------------------'
 echo '--------------------------------------------------------'
 echo '  Load balancer deployed to the IP Address shown above'
 echo '--------------------------------------------------------'
+
+echo '-----------------------------------------------------------------'
+echo '  Remember to Clean up your resources later.'
+echo "  These can be found under group '$RgName'"
+echo '  The portal allows convenient use of the 'force' option.'
+echo '-----------------------------------------------------------------'
 
 
 
